@@ -8,9 +8,25 @@ provider:
   runtime: nodejs18.x
 
 functions:
-  api:
-    handler: index.handler
-    events:
-      - httpApi:
-          path: /
-          method: get
+  firstStepFunction:
+    handler: firstStepFunction.handler
+
+stepFunctions:
+  stateMachines:
+    helloStepFunction:
+      name: helloStepFunction
+      events:
+        - httpApi:
+            path: /first-step
+            method: get
+      definition:
+        Comment: "A Hello World example of the Amazon States Language using a Pass state"
+        StartAt: FirstStepFunction
+        States:
+          FirstStepFunction:
+            Type: Task
+            Result: "Hello World!"
+            End: true
+
+plugins:
+  - serverless-step-functions

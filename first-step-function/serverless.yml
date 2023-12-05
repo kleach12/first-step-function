@@ -8,24 +8,46 @@ provider:
   runtime: nodejs18.x
 
 functions:
-  firstStepFunction:
-    handler: firstStepFunction.handler
+  processPurchase:
+    handler: processPurchase.handler
+  processRefund:
+    handler: processRefund.handler
 
 stepFunctions:
   stateMachines:
-    helloStepFunction:
-      name: helloStepFunction
+    ProcessPaymentStepFunction:
+      name: ProcessPaymentStepFunction
       events:
         - httpApi:
             path: /first-step
             method: get
       definition:
         Comment: "A Hello World example of the Amazon States Language using a Pass state"
-        StartAt: FirstStepFunction
+        StartAt: ProcessTransaction
         States:
-          FirstStepFunction:
+          ProcessTransaction:
+            Type: Choice
+            Choices: [
+              {
+                Variable: "$.TransactionType",
+                StringEquals: "PURCHASE",
+                Next: "ProcessPurchase"
+              },
+              {
+                Variable: "$.TransactionType",
+                StringEquals: "REFUND",
+                Next: "ProcessRefund"
+              }
+            ]
+          ProcessPurchase:
             Type: Task
-            Result: "Hello World!"
+            Resource:
+              Fn::GetAtt: [processPurchase, Arn]
+            End: true
+          ProcessRefund:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [processRefund, Arn]
             End: true
 
 plugins:
